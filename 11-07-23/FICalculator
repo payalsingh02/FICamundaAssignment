@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1vq0ttv" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.12.1" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.19.0">
+  <bpmn:process id="Process_0ii9ty2" isExecutable="true" camunda:historyTimeToLive="P30D">
+    <bpmn:startEvent id="StartEvent_1" name="Approved by BC partner">
+      <bpmn:outgoing>Flow_01cg2fu</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_01cg2fu" sourceRef="StartEvent_1" targetRef="DealDefined1" />
+    <bpmn:exclusiveGateway id="DealDefined1" name="Is the deal defined?">
+      <bpmn:incoming>Flow_01cg2fu</bpmn:incoming>
+      <bpmn:outgoing>Flow_01te1mg</bpmn:outgoing>
+      <bpmn:outgoing>DealNotDefined</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_01te1mg" name="Is defined" sourceRef="DealDefined1" targetRef="isDefined">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isDealDefined=='Y'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="DealNotDefined" name="Is not defined" sourceRef="DealDefined1" targetRef="C1002">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isDealDefined=='N'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="isDefined" name="Auto Populate  the deal" camunda:class="com.nucsoft.advancedsuite.MakeCoffeeDelegate">
+      <bpmn:incoming>Flow_01te1mg</bpmn:incoming>
+      <bpmn:outgoing>Flow_1dwd8xb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="C1002" name="Deals populated in NG-Calculator" camunda:class="com.nucsoft.advancedsuite.MakeCoffeeDelegate">
+      <bpmn:incoming>DealNotDefined</bpmn:incoming>
+      <bpmn:outgoing>Flow_1nbmin3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1vfo5ou">
+      <bpmn:incoming>Flow_1dwd8xb</bpmn:incoming>
+      <bpmn:incoming>Flow_1nbmin3</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rhcsmu</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1dwd8xb" sourceRef="isDefined" targetRef="Gateway_1vfo5ou" />
+    <bpmn:sequenceFlow id="Flow_1nbmin3" sourceRef="C1002" targetRef="Gateway_1vfo5ou" />
+    <bpmn:sequenceFlow id="Flow_1rhcsmu" sourceRef="Gateway_1vfo5ou" targetRef="C1003" />
+    <bpmn:userTask id="C1003" name="Setting parameters">
+      <bpmn:incoming>Flow_1rhcsmu</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bo02l1</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="CustomerAgrees" name="Did customer agrees?">
+      <bpmn:incoming>Flow_0bo02l1</bpmn:incoming>
+      <bpmn:outgoing>Flow_1bagow5</bpmn:outgoing>
+      <bpmn:outgoing>CustomerAgree</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0bo02l1" sourceRef="C1003" targetRef="CustomerAgrees" />
+    <bpmn:sequenceFlow id="Flow_1bagow5" name="No" sourceRef="CustomerAgrees" targetRef="Ent_Event2">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isCustomerAgrees=='N'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Ent_Event2" name="Send to rejection flow">
+      <bpmn:incoming>Flow_1bagow5</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_14hduep" messageRef="Message_37imbl7" />
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_0mb24ji" name="Finalizing the deal">
+      <bpmn:incoming>CustomerAgree</bpmn:incoming>
+      <bpmn:outgoing>Flow_0awq1cx</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_Event1" name="Deal Finalized">
+      <bpmn:incoming>Flow_0awq1cx</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0awq1cx" sourceRef="Activity_0mb24ji" targetRef="End_Event1" />
+    <bpmn:sequenceFlow id="CustomerAgree" name="Yes" sourceRef="CustomerAgrees" targetRef="Activity_0mb24ji">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isCustomerAgrees=='Y'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:textAnnotation id="TextAnnotation_1tghz1l">
+      <bpmn:text>Partner decision tracking enable</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1ffmtz2" sourceRef="End_Event1" targetRef="TextAnnotation_1tghz1l" />
+  </bpmn:process>
+  <bpmn:message id="Message_37imbl7" name="Message_37imbl7" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_0ii9ty2">
+      <bpmndi:BPMNShape id="TextAnnotation_1tghz1l_di" bpmnElement="TextAnnotation_1tghz1l">
+        <dc:Bounds x="1110" y="90" width="99.98924268502583" height="55.077452667814114" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="192" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="170" y="165" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0hr4o92_di" bpmnElement="DealDefined1" isMarkerVisible="true">
+        <dc:Bounds x="305" y="115" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="304" y="78" width="52" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_16e1oa8_di" bpmnElement="isDefined">
+        <dc:Bounds x="440" y="100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ng3hju_di" bpmnElement="C1002">
+        <dc:Bounds x="440" y="210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1vfo5ou_di" bpmnElement="Gateway_1vfo5ou" isMarkerVisible="true">
+        <dc:Bounds x="585" y="165" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_066b993_di" bpmnElement="C1003">
+        <dc:Bounds x="660" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1ufg90o_di" bpmnElement="CustomerAgrees" isMarkerVisible="true">
+        <dc:Bounds x="805" y="165" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="796" y="128" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1kmfoim_di" bpmnElement="Ent_Event2">
+        <dc:Bounds x="922" y="282" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="899" y="325" width="83" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_18yyw8m_di" bpmnElement="Activity_0mb24ji">
+        <dc:Bounds x="910" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_07qo6pu_di" bpmnElement="End_Event1">
+        <dc:Bounds x="1072" y="172" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1055" y="215" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1ffmtz2_di" bpmnElement="Association_1ffmtz2">
+        <di:waypoint x="1101" y="176" />
+        <di:waypoint x="1127" y="145" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01cg2fu_di" bpmnElement="Flow_01cg2fu">
+        <di:waypoint x="228" y="140" />
+        <di:waypoint x="305" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01te1mg_di" bpmnElement="Flow_01te1mg">
+        <di:waypoint x="355" y="140" />
+        <di:waypoint x="440" y="140" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="356" y="122" width="48" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rk0e3i_di" bpmnElement="DealNotDefined">
+        <di:waypoint x="330" y="165" />
+        <di:waypoint x="330" y="250" />
+        <di:waypoint x="440" y="250" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="336" y="163" width="67" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dwd8xb_di" bpmnElement="Flow_1dwd8xb">
+        <di:waypoint x="540" y="140" />
+        <di:waypoint x="610" y="140" />
+        <di:waypoint x="610" y="165" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1nbmin3_di" bpmnElement="Flow_1nbmin3">
+        <di:waypoint x="540" y="250" />
+        <di:waypoint x="610" y="250" />
+        <di:waypoint x="610" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rhcsmu_di" bpmnElement="Flow_1rhcsmu">
+        <di:waypoint x="635" y="190" />
+        <di:waypoint x="660" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bo02l1_di" bpmnElement="Flow_0bo02l1">
+        <di:waypoint x="760" y="190" />
+        <di:waypoint x="805" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nd9t7o_di" bpmnElement="CustomerAgree">
+        <di:waypoint x="855" y="190" />
+        <di:waypoint x="910" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="859" y="172" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bagow5_di" bpmnElement="Flow_1bagow5">
+        <di:waypoint x="830" y="215" />
+        <di:waypoint x="830" y="300" />
+        <di:waypoint x="922" y="300" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="842" y="213" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0awq1cx_di" bpmnElement="Flow_0awq1cx">
+        <di:waypoint x="1010" y="190" />
+        <di:waypoint x="1072" y="190" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
